@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -58,6 +59,13 @@ int main()
     buffer[bytes] = '\0';
 
     std::cout << "Client says: " << buffer << '\n';
+
+    const char* reply = "Hello Client";
+
+    send(clientSocket,
+        reply,
+        strlen(reply),
+        0);
 
     close(clientSocket);
     close(serverSocket);

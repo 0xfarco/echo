@@ -39,5 +39,17 @@ int main()
          strlen(msg),
          0);
 
+    char buffer[1024];
+
+    int bytes =
+        recv(clientSocket,
+            buffer,
+            sizeof(buffer)-1,
+            0);
+
+    buffer[bytes] = '\0';
+
+    std::cout << "Server: " << buffer << '\n';
+
     close(clientSocket);
 }
