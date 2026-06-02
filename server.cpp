@@ -51,21 +51,34 @@ int main()
 
     std::cout << "Client connected!\n";
 
-    char buffer[1024];
+    while (true)
+	{
+	    char buffer[1024];
 
-    int bytes =
-        recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+	    int bytes =
+	        recv(clientSocket,
+	             buffer,
+	             sizeof(buffer)-1,
+	             0);
 
-    buffer[bytes] = '\0';
+	    if (bytes <= 0)
+	        break;
 
-    std::cout << "Client says: " << buffer << '\n';
+	    buffer[bytes] = '\0';
 
-    const char* reply = "Hello Client";
+	    std::cout << "Client: "
+	              << buffer
+	              << '\n';
 
-    send(clientSocket,
-        reply,
-        strlen(reply),
-        0);
+	    std::string reply;
+
+	    std::getline(std::cin, reply);
+
+	    send(clientSocket,
+	         reply.c_str(),
+	         reply.size(),
+	         0);
+	}
 
     close(clientSocket);
     close(serverSocket);

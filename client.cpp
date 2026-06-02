@@ -32,24 +32,32 @@ int main()
 
     std::cout << "Connected to server!\n";
 
-    const char* msg = "Hello Server";
-
-    send(clientSocket,
-         msg,
-         strlen(msg),
-         0);
-
-    char buffer[1024];
-
-    int bytes =
-        recv(clientSocket,
-            buffer,
-            sizeof(buffer)-1,
-            0);
-
-    buffer[bytes] = '\0';
-
-    std::cout << "Server: " << buffer << '\n';
+    while (true)
+	{
+	    std::string msg;
+	
+	    std::getline(std::cin, msg);
+	
+	    send(clientSocket,
+	         msg.c_str(),
+	         msg.size(),
+	         0);
+	
+	    char buffer[1024];
+	
+	    int bytes =
+	        recv(clientSocket,
+	             buffer,
+	             sizeof(buffer)-1,
+	             0);
+	
+	    buffer[bytes] = '\0';
+	
+	    std::cout
+	        << "Server: "
+	        << buffer
+	        << '\n';
+	}
 
     close(clientSocket);
 }
