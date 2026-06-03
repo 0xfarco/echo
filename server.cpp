@@ -3,6 +3,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <vector>
+
+std::vector<int> clients;
 
 int main()
 {
@@ -35,51 +38,30 @@ int main()
 
     std::cout << "Waiting for connection...\n";
 
-    sockaddr_in clientAddr{};
-    socklen_t clientLen = sizeof(clientAddr);
-
-    int clientSocket =
-        accept(serverSocket,
-               (sockaddr*)&clientAddr,
-               &clientLen);
-
-    if (clientSocket < 0)
-    {
-        perror("accept");
-        return 1;
-    }
-
-    std::cout << "Client connected!\n";
-
     while (true)
 	{
-	    char buffer[1024];
+	    sockaddr_in clientAddr{};
+	    socklen_t clientLen = sizeof(clientAddr);
+	
+	    int clientSocket =
+	        accept(serverSocket,
+	               (sockaddr*)&clientAddr,
+	               &clientLen);
+	
+	    if (clientSocket < 0)
+	    {
+	        perror("accept");
+	        return 1;
+	    }
+	
+	    std::cout << "Client connected!\n";
 
-	    int bytes =
-	        recv(clientSocket,
-	             buffer,
-	             sizeof(buffer)-1,
-	             0);
-
-	    if (bytes <= 0)
-	        break;
-
-	    buffer[bytes] = '\0';
-
-	    std::cout << "Client: "
-	              << buffer
-	              << '\n';
-
-	    std::string reply;
-
-	    std::getline(std::cin, reply);
-
-	    send(clientSocket,
-	         reply.c_str(),
-	         reply.size(),
-	         0);
+        clients.push_back(clientSocket);
 	}
 
-    close(clientSocket);
+    for (int client : clients)
+    {
+        close(client);
+    }
     close(serverSocket);
 }
