@@ -5,13 +5,34 @@
 #include <unistd.h>
 #include <vector>
 #include <thread>
+#include <mutex>
+#include <algorithm>
 
 std::vector<int> clients;
+std::mutex clientsMutex;
+
+void broadcast(const std::string& msg, int senderSocket) {
+    std::lock_guard<std::mutex>
+        lock(clientsMutex);
+
+    for(auto &client : clients)
+    {
+	if (client != senderSocket)
+	    send(client, msg.c_str(), msg.size(), 0);
+    }
+}
+
+void removeClient(int clientSocket) {
+    std::lock_guard<std::mutex> lock(clientsMutex);
+
+    clients.erase(
+	    std::remove(clients.begin(), clients.end(), clientSocket),
+	    clients.end());
+}
 
 void handleClient(int clientSocket) {
+    char buffer[1024];
     while (true) {
-	char buffer[1024];
-
 	int bytes = recv(clientSocket, buffer, sizeof(buffer), 0);
 
 	if (bytes <= 0) {
@@ -21,9 +42,14 @@ void handleClient(int clientSocket) {
 
 	buffer[bytes] = '\0';
 
-	std::cout << "Client " << buffer << '\n';
+	std::string msg(buffer);
+
+	std::cout << "Client: " << buffer << '\n';
+
+	broadcast(msg, clientSocket);
     }
 
+    removeClient(clientSocket);
     close(clientSocket);
 }
 
@@ -71,7 +97,10 @@ int main()
 	
 	    std::cout << "Client connected!\n";
 
-	    clients.push_back(clientSocket);
+	    {
+		std::lock_guard<std::mutex> lock(clientsMutex);
+		clients.push_back(clientSocket);
+	    }
 
 	    std::thread t (
 		handleClient,

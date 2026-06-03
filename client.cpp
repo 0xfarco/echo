@@ -3,6 +3,27 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <thread>
+
+void receiveMessages(int clientSocket)
+{
+    char buffer[1024];
+
+    while (true)
+    {
+        int bytes = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+
+        if (bytes <= 0)
+        {
+            std::cout << "Disconnected from server\n";
+            break;
+        }
+
+        buffer[bytes] = '\0';
+
+        std::cout << "\nMessage: " << buffer << '\n';
+    }
+}
 
 int main()
 {
@@ -28,6 +49,8 @@ int main()
 
     std::cout << "Connected to server!\n";
 
+    std::thread receiver(receiveMessages, clientSocket);
+
     while (true)
 	{
 	    std::string msg;
@@ -35,15 +58,11 @@ int main()
 	    std::getline(std::cin, msg);
 	
 	    send(clientSocket, msg.c_str(), msg.size(), 0);
-	
-	    char buffer[1024];
-	
-	    int bytes = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-	
-	    buffer[bytes] = '\0';
-	
-	    std::cout << "Server: " << buffer << '\n';
 	}
 
     close(clientSocket);
+
+    receiver.join();
+
+    return 0;
 }
