@@ -4,8 +4,28 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <vector>
+#include <thread>
 
 std::vector<int> clients;
+
+void handleClient(int clientSocket) {
+    while (true) {
+	char buffer[1024];
+
+	int bytes = recv(clientSocket, buffer, sizeof(buffer), 0);
+
+	if (bytes <= 0) {
+	    std::cout << "Client disconnected\n";
+	    break;
+	}
+
+	buffer[bytes] = '\0';
+
+	std::cout << "Client " << buffer << '\n';
+    }
+
+    close(clientSocket);
+}
 
 int main()
 {
@@ -22,9 +42,7 @@ int main()
     serverAddr.sin_port = htons(8080);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(serverSocket,
-             (sockaddr*)&serverAddr,
-             sizeof(serverAddr)) < 0)
+    if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
     {
         perror("bind");
         return 1;
@@ -43,10 +61,7 @@ int main()
 	    sockaddr_in clientAddr{};
 	    socklen_t clientLen = sizeof(clientAddr);
 	
-	    int clientSocket =
-	        accept(serverSocket,
-	               (sockaddr*)&clientAddr,
-	               &clientLen);
+	    int clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientLen);
 	
 	    if (clientSocket < 0)
 	    {
@@ -56,12 +71,15 @@ int main()
 	
 	    std::cout << "Client connected!\n";
 
-        clients.push_back(clientSocket);
+	    clients.push_back(clientSocket);
+
+	    std::thread t (
+		handleClient,
+		clientSocket
+	    );
+
+	    t.detach();
 	}
 
-    for (int client : clients)
-    {
-        close(client);
-    }
     close(serverSocket);
 }

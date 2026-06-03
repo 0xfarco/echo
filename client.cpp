@@ -18,13 +18,9 @@ int main()
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(8080);
 
-    inet_pton(AF_INET,
-              "127.0.0.1",
-              &serverAddr.sin_addr);
+    inet_pton(AF_INET, "127.0.0.1", &serverAddr.sin_addr);
 
-    if (connect(clientSocket,
-                (sockaddr*)&serverAddr,
-                sizeof(serverAddr)) < 0)
+    if (connect(clientSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
     {
         perror("connect");
         return 1;
@@ -38,25 +34,15 @@ int main()
 	
 	    std::getline(std::cin, msg);
 	
-	    send(clientSocket,
-	         msg.c_str(),
-	         msg.size(),
-	         0);
+	    send(clientSocket, msg.c_str(), msg.size(), 0);
 	
 	    char buffer[1024];
 	
-	    int bytes =
-	        recv(clientSocket,
-	             buffer,
-	             sizeof(buffer)-1,
-	             0);
+	    int bytes = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
 	
 	    buffer[bytes] = '\0';
 	
-	    std::cout
-	        << "Server: "
-	        << buffer
-	        << '\n';
+	    std::cout << "Server: " << buffer << '\n';
 	}
 
     close(clientSocket);
